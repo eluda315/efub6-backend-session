@@ -22,21 +22,19 @@ public class PostController {
     @PostMapping
     public ResponseEntity<Void> createPost(@Valid @RequestBody PostCreateRequest request) {
         Long id = postService.createPost(request);
-        return ResponseEntity.created(URI.create("/posts"+id)).build();
+        return ResponseEntity.created(URI.create("/posts/"+id)).build();
     }
 
     // 게시물 전체 조회
     @GetMapping
     public ResponseEntity<PostListResponse> getAllPosts(){
-        PostListResponse response = postService.getAllPosts();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(postService.getAllPosts());
     }
 
     // 게시물 1개 조회
     @GetMapping("/{id}")
-    public ResponseEntity<PostResponse> getPost(@PathVariable("id") Long id) {
-        PostResponse response = postService.getPost(id);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<PostResponse> getPost(@PathVariable("id") Long id){
+        return ResponseEntity.ok(postService.getPost(id));
     }
 
     // 게시글 수정
@@ -44,14 +42,14 @@ public class PostController {
     public ResponseEntity<Void> updatePostContent(@PathVariable("id") Long postId,
                                                   @RequestHeader("Auth-Id") Long accountId,
                                                   @Valid @RequestBody PostUpdateRequest request) {
-        postService.updatePostContent(postId, accountId, request);
+        postService.updatePostContent(postId, request, accountId);
         return ResponseEntity.noContent().build();
     }
 
     // 게시글 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable("id") Long postId,
-                                           @RequestHeader("Auth-Id") Long accountId) {
+                                           @RequestHeader("Auth-Id") Long accountId){
         postService.deletePost(postId, accountId);
         return ResponseEntity.noContent().build();
     }

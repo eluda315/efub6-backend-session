@@ -7,10 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-    // 생성한 날짜 정렬 전체 조회
+    Optional<Post> findById(Long id);
+
+    // 생성한 날짜 기준 전체 조회
     List<Post> findAllByOrderByCreatedAtDesc();
 
     // 조회수 증가

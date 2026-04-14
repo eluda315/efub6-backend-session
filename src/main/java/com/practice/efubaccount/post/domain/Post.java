@@ -1,12 +1,17 @@
 package com.practice.efubaccount.post.domain;
 
 import com.practice.efubaccount.account.domain.Account;
+//import com.practice.efubaccount.comment.domain.Comment;
+
 import com.practice.efubaccount.global.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -28,6 +33,9 @@ public class Post extends BaseEntity{
 
     @Column(nullable = false)
     private Long viewCount;
+
+    // 연관관계의 Owner 설정
+
 
     @Builder
     public Post(String title, Account writer, String content) {

@@ -28,16 +28,16 @@ public class AccountController {
     }
 
     //TODO: Redis 조회
-//    @GetMapping("/redis/{accountId}")
-//    public String getEmailByIdFromRedis(@PathVariable("accountId") Long accountId) {
-//        return accountService.findEmailByIdFromRedis(accountId);
-//    }
+    @GetMapping("/redis/{accountId}")
+    public String getEmailByIdFromRedis(@PathVariable("accountId") Long accountId) {
+        return accountService.findEmailByIdFromRedis(accountId);
+    }
 
     //TODO: Mongo DB 조회
-//    @GetMapping("/mongodb/{accountId}")
-//    public String getNicknameByIdFromMongodb(@PathVariable("accountId") Long accountId) {
-//        return accountService.findNicknameByIdFromMongo(accountId);
-//    }
+    @GetMapping("/mongodb/{accountId}")
+    public String getNicknameByIdFromMongodb(@PathVariable("accountId") Long accountId) {
+        return accountService.findNicknameByIdFromMongo(accountId);
+    }
 
 
     // 계정 생성 POST /accounts

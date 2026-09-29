@@ -43,11 +43,32 @@ class PostServiceTest {
     @Test
     void PostService_생성_성공() {
         // TODO 2) 기본 stubbing
+        given(accountService.findByAccountId(1L)).willReturn(testAccount);
+
+        Account foundAccount = accountService.findByAccountId(1L);
+
+        assertSame(testAccount, foundAccount);
     }
 
     @Test
     void deletePost_postRepository_delete에서_예외_전달() {
         // TODO 3) 의도적 실패 주입 테스트
+        Post post = Post.builder()
+                .title("제목")
+                .content("내용")
+                .writer(testAccount)
+                .build();
+
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+        given(accountService.findByAccountId(1L)).willReturn(testAccount);
+
+        willThrow(new IllegalArgumentException("삭제 실패"))
+                .given(postRepository).delete(any(Post.class));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> postService.deletePost(10L, 1L));
+        assertEquals("삭제 실패", exception.getMessage());
+
     }
 
     @Test
@@ -59,10 +80,18 @@ class PostServiceTest {
                 .password("testpw2")
                 .nickname("efub2")
                 .build();
-
         // TODO 4) 여러번 호출
+        given(accountService.findByAccountId(any()))
+                .willReturn(a1)
+                .willThrow(new RuntimeException("두 번째 실패"))
+                .willReturn(a2);
 
         // TODO 5) 검증
+        assertSame(a1, accountService.findByAccountId(111L));
+        assertThrows(RuntimeException.class, () -> accountService.findByAccountId(222L));
+        assertSame(a2, accountService.findByAccountId(333L));
+
+
     }
 
     @Test
@@ -76,5 +105,13 @@ class PostServiceTest {
 
 
         // TODO 6) Mock 객체 확인
+        given(postRepository.findById(5L)).willReturn(Optional.of(post));
+
+        PostResponse res = postService.getPost(5L);
+
+        assertNotNull(res);
+        verify(postRepository).increaseViewCount(5L);
+        verify(postRepository, times(1)).findById(5L);
+        verifyNoMoreInteractions(postRepository);
     }
 }

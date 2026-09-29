@@ -38,7 +38,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	// TODO 1) H2 의존성 추가
-
+		testRuntimeOnly 'com.h2database:h2'
 	}
 
 tasks.named('test') {

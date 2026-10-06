@@ -2,17 +2,20 @@ package com.practice.efubaccount.global.jwt;
 
 import com.practice.efubaccount.account.domain.Account;
 import com.practice.efubaccount.account.repository.AccountRepository;
+import com.practice.efubaccount.global.exception.CustomException;
+import com.practice.efubaccount.global.exception.ErrorCode;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
@@ -34,7 +37,6 @@ public class TokenProvider {
     private static final String AUTH_CLAIM = "auth";
 
     private final AccountRepository accountRepository;
-    private final RedisTemplate<String, String> redisTemplate;
 
     /**
      * AccessToken 생성 메소드
@@ -74,12 +76,16 @@ public class TokenProvider {
     }
 
     /**
-     * Redis에 리프레시 토큰을 저장하는 메소드
-     * key: 사용자 ID, alue: 리프레시 토큰
-     * 리프레시토큰 만료 시간(refreshTokenExpiration)을 만료시간으로 정해 자동으로 삭제되도록 설정
+     * Refresh token을 Account와 함께 MySQL에 저장한다.
      */
-    public void saveRefreshToken(Long userId, String refreshToken){
-        redisTemplate.opsForValue().set(userId.toString(),refreshToken, Duration.ofMillis(refreshTokenExpiration));
+    @Transactional
+    public void saveRefreshToken(Long accountId, String refreshToken){
+        Account account = accountRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+        account.updateRefreshToken(
+                refreshToken,
+                LocalDateTime.now().plus(Duration.ofMillis(refreshTokenExpiration))
+        );
     }
 
     /**

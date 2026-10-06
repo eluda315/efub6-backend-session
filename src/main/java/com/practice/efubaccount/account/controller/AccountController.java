@@ -27,18 +27,6 @@ public class AccountController {
         return ResponseEntity.ok(responseDto);
     }
 
-    //Redis 조회
-    @GetMapping("/redis/{accountId}")
-    public String getEmailByIdFromRedis(@PathVariable("accountId") Long accountId) {
-        return accountService.findEmailByIdFromRedis(accountId);
-    }
-
-    //MongoDB에서 ID로 닉네임 조회
-    @GetMapping("/mongodb/{accountId}")
-    public String getNicknameByIdFromMongodb(@PathVariable("accountId") Long accountId) {
-        return accountService.findNicknameByIdFromMongo(accountId);
-    }
-
     // 계정 생성 POST /accounts
     @PostMapping
     public ResponseEntity<CreateAccountResponseDto> createAccount(@RequestBody CreateAccountRequestDto requestDto) {

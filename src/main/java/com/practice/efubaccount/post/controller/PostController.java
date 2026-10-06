@@ -3,9 +3,12 @@ package com.practice.efubaccount.post.controller;
 import com.practice.efubaccount.post.dto.request.PostCreateRequest;
 import com.practice.efubaccount.post.dto.request.PostUpdateRequest;
 import com.practice.efubaccount.post.dto.response.PostListResponse;
+import com.practice.efubaccount.post.dto.response.PostPageResponse;
 import com.practice.efubaccount.post.dto.response.PostResponse;
 import com.practice.efubaccount.post.service.PostService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,9 +28,18 @@ public class PostController {
         return ResponseEntity.created(URI.create("/posts/"+id)).build();
     }
 
-    // 게시물 전체 조회
+    // 페이지네이션이 적용된 게시물 조회
     @GetMapping
-    public ResponseEntity<PostListResponse> getAllPosts(){
+    public ResponseEntity<PostPageResponse> getPosts(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
+    ) {
+        return ResponseEntity.ok(postService.getPosts(page, size));
+    }
+
+    // 성능 비교 실습용: 모든 게시물을 한 번에 조회
+    @GetMapping("/all")
+    public ResponseEntity<PostListResponse> getAllPosts() {
         return ResponseEntity.ok(postService.getAllPosts());
     }
 

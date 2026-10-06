@@ -1,0 +1,30 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  datasource:
+    # ${환경변수:기본값}: workflow의 임시 MySQL 접속 정보를 사용한다.
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/efub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    # JSON 응답 단계까지 DB 접근을 이어가지 않고 Service에서 조회를 마친다.
+    open-in-view: false
+    hibernate:
+      # 임시 MySQL에 Entity 테이블을 준비한 다음 seed를 실행한다.
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: false
+    # 부하 측정 중 대량 SQL 로그 출력 비용을 줄인다.
+    show-sql: false
+
+jwt:
+  # 공개 API를 호출해도 TokenProvider 빈 생성에 필요하다. CI 실습용 키다.
+  secretKey: ${JWT_SECRET_KEY:dGVzdC1vbmx5LXNlY3JldC1rZXktZm9yLWxvYWQtdGVzdC1jaS1vbmx5}
+
+logging:
+  level:
+    root: info
+    org.hibernate.SQL: warn

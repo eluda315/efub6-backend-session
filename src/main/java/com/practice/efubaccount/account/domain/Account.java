@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -37,6 +38,11 @@ public class Account {
     @Enumerated(EnumType.STRING)
     private AccountStatus status = AccountStatus.ACTIVE;
 
+    @Column(length = 512)
+    private String refreshToken;
+
+    private LocalDateTime refreshTokenExpiresAt;
+
     // 연관관계의 Owner 설정
     @OneToMany(mappedBy = "writer",cascade = CascadeType.ALL,orphanRemoval = true)
     private List<Comment> commentList = new ArrayList<>();
@@ -57,4 +63,16 @@ public class Account {
     }
 
     public void updateNickname(String nickname) {this.nickname = nickname;}
+
+    public void updateRefreshToken(String refreshToken, LocalDateTime expiresAt) {
+        this.refreshToken = refreshToken;
+        this.refreshTokenExpiresAt = expiresAt;
+    }
+
+    public boolean hasValidRefreshToken(String refreshToken) {
+        return this.refreshToken != null
+                && this.refreshToken.equals(refreshToken)
+                && this.refreshTokenExpiresAt != null
+                && this.refreshTokenExpiresAt.isAfter(LocalDateTime.now());
+    }
 }

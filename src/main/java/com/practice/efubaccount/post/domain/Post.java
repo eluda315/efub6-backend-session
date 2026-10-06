@@ -18,7 +18,9 @@ import java.util.List;
 @Entity
 // 최신 게시글 정렬을 보조하는 복합 인덱스를 적용한다.
 // 기존 DB에 이미 이 인덱스가 있으면 주석 처리만으로 제거되지는 않는다.
-
+@Table(indexes = {
+        @Index(name = "idx_post_created_at_id", columnList = "created_at, id")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post extends BaseEntity {

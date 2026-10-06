@@ -35,8 +35,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	// TODO 1) H2 의존성 추가
-		testRuntimeOnly 'com.h2database:h2'
+	testRuntimeOnly 'com.h2database:h2'
 	}
 
 tasks.named('test') {
@@ -44,54 +43,54 @@ tasks.named('test') {
 	jvmArgs "-Xshare:off"
 }
 
-// // 실행 중인 로컬 서버에 k6를 호출하는 IntelliJ/Gradle 편의 작업.
-// // 서버 시작은 별도로 한다. 직접 k6 run 명령을 입력해도 같은 JS 파일을 사용한다.
-// def registerK6LoadTest = { String taskName, String targetPath ->
-// 	tasks.register(taskName, Exec) {
-// 		group = 'load testing'
-// 		description = "Run k6 against ${targetPath}"
-// 		workingDir projectDir
-// 		commandLine 'k6', 'run',
-// 			'-e', 'BASE_URL=http://localhost:8080',
-// 			'-e', "TARGET_PATH=${targetPath}",
-// 			'-e', 'HTTP_METHOD=GET',
-// 			'-e', 'MAX_P95_MS=500',
-// 			'-e', 'MAX_ERROR_RATE=0.01',
-// 			'-e', 'MAX_RESPONSE_BYTES=100000',
-// 			'load-tests/http.js'
-// 	}
-// }
+ // 실행 중인 로컬 서버에 k6를 호출하는 IntelliJ/Gradle 편의 작업.
+ // 서버 시작은 별도로 한다. 직접 k6 run 명령을 입력해도 같은 JS 파일을 사용한다.
+ def registerK6LoadTest = { String taskName, String targetPath ->
+ 	tasks.register(taskName, Exec) {
+ 		group = 'load testing'
+ 		description = "Run k6 against ${targetPath}"
+ 		workingDir projectDir
+ 		commandLine 'k6', 'run',
+ 			'-e', 'BASE_URL=http://localhost:8080',
+ 			'-e', "TARGET_PATH=${targetPath}",
+ 			'-e', 'HTTP_METHOD=GET',
+ 			'-e', 'MAX_P95_MS=500',
+ 			'-e', 'MAX_ERROR_RATE=0.01',
+ 			'-e', 'MAX_RESPONSE_BYTES=100000',
+ 			'load-tests/http.js'
+ 	}
+ }
 
-// registerK6LoadTest('loadTestAllPosts', '/posts/all')
-// registerK6LoadTest('loadTestPaginatedPosts', '/posts?page=0&size=20')
+ registerK6LoadTest('loadTestAllPosts', '/posts/all')
+ registerK6LoadTest('loadTestPaginatedPosts', '/posts?page=0&size=20')
 
-// def registerHotRowLoadTest = { String taskName, String mode ->
-// 	tasks.register(taskName, Exec) {
-// 		group = 'load testing'
-// 		description = "Run the ${mode} row-access scenario"
-// 		workingDir projectDir
-// 		commandLine 'k6', 'run',
-// 			'-e', 'BASE_URL=http://localhost:8080',
-// 			'-e', "HOT_ROW_MODE=${mode}",
-// 			'-e', 'TARGET_VUS=20',
-// 			'-e', 'SLEEP_SECONDS=0.1',
-// 			'-e', 'MAX_P95_MS=500',
-// 			'load-tests/hot-row.js'
-// 	}
-// }
+ def registerHotRowLoadTest = { String taskName, String mode ->
+ 	tasks.register(taskName, Exec) {
+ 		group = 'load testing'
+ 		description = "Run the ${mode} row-access scenario"
+ 		workingDir projectDir
+ 		commandLine 'k6', 'run',
+ 			'-e', 'BASE_URL=http://localhost:8080',
+ 			'-e', "HOT_ROW_MODE=${mode}",
+ 			'-e', 'TARGET_VUS=20',
+ 			'-e', 'SLEEP_SECONDS=0.1',
+ 			'-e', 'MAX_P95_MS=500',
+ 			'load-tests/hot-row.js'
+ 	}
+ }
 
-// registerHotRowLoadTest('loadTestHotRowBefore', 'single')
-// registerHotRowLoadTest('loadTestHotRowAfter', 'sharded')
+ registerHotRowLoadTest('loadTestHotRowBefore', 'single')
+ registerHotRowLoadTest('loadTestHotRowAfter', 'sharded')
 
-// // 랜덤 포트에서 Spring을 실행해 데이터 준비 후 자동 종료한다.
-// // 일반 bootRun/IntelliJ 실행에서는 아래 seed 활성화 옵션을 전달하지 않는다.
-// tasks.register('seedLoadTestData', JavaExec) {
-// 	group = 'load testing'
-// 	description = 'Create the 10,000 MySQL posts used by the load-test practice'
-// 	dependsOn tasks.named('classes')
-// 	classpath = sourceSets.main.runtimeClasspath
-// 	mainClass = 'com.practice.efubaccount.EfubaccountApplication'
-// 	args '--server.port=0',
-// 		'--loadtest.seed.enabled=true',
-// 		'--loadtest.seed.exit-after-completion=true'
-// }
+ // 랜덤 포트에서 Spring을 실행해 데이터 준비 후 자동 종료한다.
+ // 일반 bootRun/IntelliJ 실행에서는 아래 seed 활성화 옵션을 전달하지 않는다.
+ tasks.register('seedLoadTestData', JavaExec) {
+ 	group = 'load testing'
+ 	description = 'Create the 10,000 MySQL posts used by the load-test practice'
+ 	dependsOn tasks.named('classes')
+ 	classpath = sourceSets.main.runtimeClasspath
+ 	mainClass = 'com.practice.efubaccount.EfubaccountApplication'
+ 	args '--server.port=0',
+ 		'--loadtest.seed.enabled=true',
+ 		'--loadtest.seed.exit-after-completion=true'
+ }

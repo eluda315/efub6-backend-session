@@ -1,0 +1,216 @@
+name: Load test
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: "실행할 부하 테스트 시나리오"
+        required: true
+        default: "generic"
+        type: choice
+        options:
+          - generic
+          - hot-row-before
+          - hot-row-after
+      target_path:
+        description: "generic 시나리오에서 호출할 API 경로"
+        required: true
+        default: "/posts?page=0&size=20"
+        type: string
+      http_method:
+        description: "generic 시나리오의 HTTP 메서드"
+        required: true
+        default: "GET"
+        type: choice
+        options:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+      target_vus:
+        description: "최대 가상 사용자 수"
+        required: true
+        default: "10"
+        type: string
+      max_p95_ms:
+        description: "허용할 p95 응답 시간(ms)"
+        required: true
+        default: "500"
+        type: string
+      max_error_rate:
+        description: "허용할 요청 실패율(0~1)"
+        required: true
+        default: "0.01"
+        type: string
+      max_response_bytes:
+        description: "허용할 p95 응답 크기(byte), 0이면 검사 안 함"
+        required: true
+        default: "100000"
+        type: string
+      sleep_seconds:
+        description: "요청 간 대기시간(초), hot row 비교는 0.1부터 시작"
+        required: true
+        default: "0.1"
+        type: string
+  push:
+    branches: [week13]
+    paths:
+      - "src/main/**"
+      - "src/test/**"
+      - "load-tests/**"
+      - "build.gradle"
+      - "gradle/**"
+      - "gradlew"
+      - ".github/workflows/load-test.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: load-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  k6:
+    name: k6 performance gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: efub
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      SPRING_PROFILES_ACTIVE: ci
+      DB_URL: jdbc:mysql://127.0.0.1:3306/efub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      BASE_URL: http://127.0.0.1:8080
+      TARGET_VUS: ${{ inputs.target_vus || '10' }}
+      MAX_P95_MS: ${{ inputs.max_p95_ms || '500' }}
+      MAX_ERROR_RATE: ${{ inputs.max_error_rate || '0.01' }}
+      MAX_RESPONSE_BYTES: ${{ inputs.max_response_bytes || '100000' }}
+      TARGET_PATH: ${{ inputs.target_path || '/posts?page=0&size=20' }}
+      HTTP_METHOD: ${{ inputs.http_method || 'GET' }}
+      SCENARIO: ${{ inputs.scenario || 'generic' }}
+      # push는 읽기 실습과 같은 1초 간격, 수동 실행은 입력한 간격을 사용한다.
+      SLEEP_SECONDS: ${{ inputs.sleep_seconds || '1' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+
+      - name: Prepare output directory and Gradle wrapper
+        run: |
+          mkdir -p results
+          chmod +x gradlew
+
+      - name: Test application
+        run: ./gradlew test
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Build application
+        run: ./gradlew bootJar
+
+      - name: Seed 10,000 posts
+        run: ./gradlew seedLoadTestData | tee results/seed.log
+
+      - name: Start application
+        shell: bash
+        run: |
+          APP_JAR=$(find build/libs -maxdepth 1 -name '*.jar' ! -name '*-plain.jar' -print -quit)
+          if [[ -z "$APP_JAR" ]]; then
+            echo "Spring Boot JAR was not found"
+            exit 1
+          fi
+          nohup java -jar "$APP_JAR" > results/application.log 2>&1 &
+          echo $! > results/application.pid
+
+      - name: Wait for application
+        shell: bash
+        run: |
+          for attempt in {1..60}; do
+            if ! kill -0 "$(<results/application.pid)" 2>/dev/null; then
+              echo "Application exited before becoming ready"
+              tail -n 200 results/application.log
+              exit 1
+            fi
+            if curl --fail --silent --connect-timeout 1 --max-time 2 --output /dev/null \
+              "http://127.0.0.1:8080/posts?page=0&size=1"; then
+              echo "Application is ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Application did not become ready"
+          tail -n 200 results/application.log
+          exit 1
+
+      - name: Set up k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Select load-test scenario
+        shell: bash
+        run: |
+          case "$SCENARIO" in
+            hot-row-before)
+              echo "K6_SCRIPT=load-tests/hot-row.js" >> "$GITHUB_ENV"
+              echo "HOT_ROW_MODE=single" >> "$GITHUB_ENV"
+              ;;
+            hot-row-after)
+              echo "K6_SCRIPT=load-tests/hot-row.js" >> "$GITHUB_ENV"
+              echo "HOT_ROW_MODE=sharded" >> "$GITHUB_ENV"
+              ;;
+            generic)
+              echo "K6_SCRIPT=load-tests/http.js" >> "$GITHUB_ENV"
+              ;;
+            *)
+              echo "Unknown scenario: $SCENARIO"
+              exit 1
+              ;;
+          esac
+
+      - name: Run load test
+        run: |
+          k6 run \
+            --summary-export=results/summary.json \
+            "$K6_SCRIPT"
+
+      - name: Upload load-test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-${{ inputs.scenario || 'generic' }}-${{ github.run_number }}
+          path: |
+            results/summary.json
+            results/application.log
+            results/seed.log
+            build/reports/tests/test/
+          if-no-files-found: warn
+          retention-days: 14

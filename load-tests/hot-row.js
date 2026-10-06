@@ -23,8 +23,9 @@ export const options = {
   thresholds: {
     // checks, 성공 요청 p95, HTTP 오류율 기준
     // http.js에서 작성한 기준을 카운터 쓰기 실습에도 적용한다.
-    
-
+    checks: [`rate==1`],
+    row_update_duration: [`p(95)<${maxP95Ms}`],
+    http_req_failed: [`rate<${maxErrorRate}`],
   },
   userAgent: 'efub6-k6-hot-row/1.0',
 };
@@ -48,25 +49,25 @@ export function setup() {
 }
 
 export default function (data) {
-  // // 같은 게시글에 single/sharded 요청
-  // // 두 모드 모두 같은 인기 게시글을 요청한다. 달라지는 것은 카운터 저장 방식뿐이다.
-  // const postId = data.postIds[0];
-  // const counterPath = mode === 'single' ? 'single-counter' : 'sharded-counter';
-  // const response = http.get(`${baseUrl}/load-test/posts/${postId}/views/${counterPath}`, {
-  //   tags: { counter_strategy: mode },
-  //   responseCallback: http.expectedStatuses(204),
-  //   timeout: __ENV.REQUEST_TIMEOUT || '5s',
-  // });
+  // 같은 게시글에 single/sharded 요청
+  // 두 모드 모두 같은 인기 게시글을 요청한다. 달라지는 것은 카운터 저장 방식뿐이다.
+  const postId = data.postIds[0];
+  const counterPath = mode === 'single' ? 'single-counter' : 'sharded-counter';
+  const response = http.get(`${baseUrl}/load-test/posts/${postId}/views/${counterPath}`, {
+    tags: { counter_strategy: mode },
+    responseCallback: http.expectedStatuses(204),
+    timeout: __ENV.REQUEST_TIMEOUT || '5s',
+  });
 
-  // // 성공 요청 시간 수집, 204 검증, 대기
-  // if (response.status === 204) {
-  //   rowUpdateDuration.add(response.timings.duration, { counter_strategy: mode });
-  // }
-  // check(response, {
-  //   'status is 204': (res) => res.status === 204,
-  // });
+  // 성공 요청 시간 수집, 204 검증, 대기
+  if (response.status === 204) {
+    rowUpdateDuration.add(response.timings.duration, { counter_strategy: mode });
+  }
+  check(response, {
+    'status is 204': (res) => res.status === 204,
+  });
 
-  // sleep(readNumber('SLEEP_SECONDS', 0.1));
+  sleep(readNumber('SLEEP_SECONDS', 0.1));
 }
 
 function readNumber(name, fallback) {

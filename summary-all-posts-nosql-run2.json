@@ -1,0 +1,154 @@
+{
+    "metrics": {
+        "checks": {
+            "passes": 682,
+            "fails": 0,
+            "thresholds": {
+                "rate==1": false
+            },
+            "value": 1
+        },
+        "http_reqs": {
+            "count": 341,
+            "rate": 6.720746894222143
+        },
+        "http_req_duration{expected_response:true}": {
+            "min": 117.0775,
+            "med": 163.536,
+            "max": 438.5967,
+            "p(90)": 288.5398,
+            "p(95)": 338.6497,
+            "avg": 189.36082111436957
+        },
+        "http_req_blocked": {
+            "avg": 0.08675131964809384,
+            "min": 0,
+            "med": 0,
+            "max": 11.0411,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "iterations": {
+            "count": 341,
+            "rate": 6.720746894222143
+        },
+        "http_req_sending": {
+            "p(95)": 0,
+            "avg": 0.3278281524926686,
+            "min": 0,
+            "med": 0,
+            "max": 109.2257,
+            "p(90)": 0
+        },
+        "http_req_waiting": {
+            "p(90)": 275.5194,
+            "p(95)": 322.3431,
+            "avg": 179.42004721407616,
+            "min": 111.1846,
+            "med": 152.3665,
+            "max": 432.9933
+        },
+        "data_sent": {
+            "count": 28985,
+            "rate": 571.2634860088821
+        },
+        "http_req_duration": {
+            "p(90)": 288.5398,
+            "p(95)": 338.6497,
+            "avg": 189.36082111436957,
+            "min": 117.0775,
+            "med": 163.536,
+            "max": 438.5967,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "vus_max": {
+            "value": 10,
+            "min": 10,
+            "max": 10
+        },
+        "http_req_tls_handshaking": {
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 341,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "data_received": {
+            "count": 313383433,
+            "rate": 6176453.765499773
+        },
+        "http_req_connecting": {
+            "med": 0,
+            "max": 8.4714,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.05240117302052787,
+            "min": 0
+        },
+        "iteration_duration": {
+            "min": 1119.3809,
+            "med": 1178.1692,
+            "max": 1512.8994,
+            "p(90)": 1339.5521,
+            "p(95)": 1386.0155,
+            "avg": 1209.2090146627565
+        },
+        "response_body_size": {
+            "avg": 857821,
+            "min": 857821,
+            "med": 857821,
+            "max": 857821,
+            "p(90)": 857821,
+            "p(95)": 857821,
+            "thresholds": {
+                "p(95)<100000": true
+            }
+        },
+        "http_req_receiving": {
+            "min": 2.4128,
+            "med": 6.0713,
+            "max": 90.6802,
+            "p(90)": 17.9832,
+            "p(95)": 30.0906,
+            "avg": 9.612945747800579
+        },
+        "vus": {
+            "value": 1,
+            "min": 1,
+            "max": 10
+        }
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "status is 200": {
+                    "name": "status is 200",
+                    "path": "::status is 200",
+                    "id": "6210a8cd14cd70477eba5c5e4cb3fb5f",
+                    "passes": 341,
+                    "fails": 0
+                },
+                "content type includes application/json": {
+                    "path": "::content type includes application/json",
+                    "id": "d96d3517fadf2ee6d8513601992b3271",
+                    "passes": 341,
+                    "fails": 0,
+                    "name": "content type includes application/json"
+                }
+            }
+    }
+}

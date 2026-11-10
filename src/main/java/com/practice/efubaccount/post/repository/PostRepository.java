@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 // TODO 5) CustomPostRepository 상속하기
-public interface PostRepository extends JpaRepository<Post, Long> {
+public interface PostRepository extends JpaRepository<Post, Long>, CustomPostRepository{
 
     // @Query와 findPostSummaries 메서드
     // 게시글 목록에 필요한 4개 필드만 조회하는 Page DTO projection을 작성한다.

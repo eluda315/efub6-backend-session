@@ -5,9 +5,9 @@ plugins {
 }
 
 // TODO 1-1) QueryDSL 버전 설정 주석 해제하기
-//ext {
-//	queryDslVersion = "5.0.0"
-//}
+ext {
+	queryDslVersion = "5.0.0"
+}
 
 group = 'com.practice'
 version = '0.0.1-SNAPSHOT'
@@ -43,10 +43,10 @@ dependencies {
 	testRuntimeOnly 'com.h2database:h2' // 테스트에 사용할 H2
 	// TODO 1-2) QueryDSL 관련 의존성 주석 해제하기
 	// QueryDSL
-//	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta"
-//	annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
-//	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
-//	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta"
+	annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 	}
 
 tasks.named('test') {

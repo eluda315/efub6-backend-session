@@ -5,6 +5,7 @@ import com.practice.efubaccount.post.dto.request.PostUpdateRequest;
 import com.practice.efubaccount.post.dto.response.PostListResponse;
 import com.practice.efubaccount.post.dto.response.PostPageResponse;
 import com.practice.efubaccount.post.dto.response.PostResponse;
+//import com.practice.efubaccount.post.dto.response.PostSearchResponseDto;
 import com.practice.efubaccount.post.service.PostService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+//import java.util.List;
 
 @RestController
 @RequestMapping("/posts")
@@ -36,6 +38,8 @@ public class PostController {
     ) {
         return ResponseEntity.ok(postService.getPosts(page, size));
     }
+
+    // TODO 7) import 문 주석 해제 및 게시글 검색 API 구현하기
 
     // 성능 비교 실습용: 모든 게시물을 한 번에 조회
     @GetMapping("/all")

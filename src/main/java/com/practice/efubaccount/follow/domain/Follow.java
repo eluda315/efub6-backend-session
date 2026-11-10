@@ -20,14 +20,13 @@ public class Follow extends BaseEntity {
 
     // 팔로우 하는 사람
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "follower_id", nullable = false, updatable = false)
+    @JoinColumn(name = "follower_id", nullable = true, updatable = false)
     private Account follower;
 
     // 팔로우 당하는 사람
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "followee_id", nullable = false, updatable = false)
+    @JoinColumn(name = "followee_id", nullable = true, updatable = false)
     private Account followee;
-
 
     @Builder
     public Follow(Account follower, Account followee) {

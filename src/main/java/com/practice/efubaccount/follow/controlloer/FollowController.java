@@ -27,6 +27,7 @@ public class FollowController {
     @DeleteMapping("/{targetId}")
     public ResponseEntity<FollowStatusResponse> unfollow(@RequestHeader("Auth-Id") Long requesterId,
                                                          @PathVariable("targetId") Long targetId) {
+
         FollowStatusResponse response = followService.unfollow(requesterId, targetId);
         return ResponseEntity.ok(response);
     }
@@ -38,9 +39,8 @@ public class FollowController {
         FollowStatusResponse response = followService.checkFollowStatusByEmail(requesterId, targetEmail);
         return ResponseEntity.ok(response);
     }
-
     // 팔로우 목록 조회
-    @GetMapping
+    @GetMapping("/")
     public ResponseEntity<FollowListResponse> getFollowList(@RequestHeader("Auth-Id") Long requesterId) {
         FollowListResponse response = followService.getFollowList(requesterId);
         return ResponseEntity.ok(response);

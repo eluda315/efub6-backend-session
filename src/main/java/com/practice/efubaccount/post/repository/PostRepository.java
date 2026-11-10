@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+// TODO 5) CustomPostRepository 상속하기
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     // @Query와 findPostSummaries 메서드

@@ -35,6 +35,10 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt:0.12.6'
 	implementation 'javax.xml.bind:jaxb-api:2.3.1'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+	// spring batch
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -100,4 +104,16 @@ tasks.register('seedLoadTestData', JavaExec) {
 	args '--server.port=0',
 		'--loadtest.seed.enabled=true',
 		'--loadtest.seed.exit-after-completion=true'
+}
+
+tasks.register('seedNewsletterData', JavaExec) {
+	group = 'newsletter batch'
+	description = 'Create the 1000 MySQL accounts used by the Spring Batch newsletter practice'
+	dependsOn tasks.named('classes')
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = 'com.practice.efubaccount.EfubaccountApplication'
+	args '--server.port=0',
+	'--spring.batch.job.enabled=false',
+	'--newsletter.seed.enabled=true',
+	'--loadtest.seed.exit-after-completion=true'
 }

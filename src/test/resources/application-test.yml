@@ -23,6 +23,9 @@ spring:
     output:
       ansi:
         enabled: always
+  batch:
+    job:
+      enabled: false
 
 jwt:
   # 테스트 컨텍스트 구동 시 TokenProvider 빈 생성 오류를 막기 위해 임의로 넣은 값

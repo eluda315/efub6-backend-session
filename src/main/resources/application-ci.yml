@@ -19,6 +19,12 @@ spring:
         format_sql: false
     # 부하 측정 중 대량 SQL 로그 출력 비용을 줄인다.
     show-sql: false
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: always
+
 
 jwt:
   # 공개 API를 호출해도 TokenProvider 빈 생성에 필요하다. CI 실습용 키다.

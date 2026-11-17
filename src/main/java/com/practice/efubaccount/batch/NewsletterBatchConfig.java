@@ -29,40 +29,40 @@ public class NewsletterBatchConfig {
 //       - newsletterJob : (Job) 배치 작업 전체. clearStep → sendStep 순서로 실행합니다.
 //       - clearStep     : (Step - Tasklet) 이전 발송 기록(mail_log)을 삭제합니다.
 //       - sendStep      : (Step - Chunk)   Reader → Processor → Writer 순으로 100건씩 처리합니다.
-//
-//    @Bean
-//    public Job newsletterJob(JobRepository jobRepository, Step clearStep, Step sendStep) {
-//        return new JobBuilder("newsletterJob", jobRepository)
-//                .start(_______)   // 첫 번째 step
-//                .next(_______)    // 두 번째 step
-//                .build();
-//    }
-//
-//    @Bean
-//    public Step clearStep(JobRepository jobRepository,
-//                          PlatformTransactionManager transactionManager,
-//                          JdbcTemplate jdbcTemplate) {
-//        return new StepBuilder("clearStep", jobRepository)
-//                .tasklet((contribution, chunkContext) -> {
-//                    jdbcTemplate.update("DELETE FROM mail_log"); // 이전 발송 기록 삭제
-//                    return RepeatStatus.FINISHED;
-//                }, transactionManager)
-//                .build();
-//    }
-//
-//    @Bean
-//    public Step sendStep(JobRepository jobRepository,
-//                         PlatformTransactionManager transactionManager,
-//                         JdbcPagingItemReader<Subscriber> subscriberReader,
-//                         ItemProcessor<Subscriber, MailLog> newsletterProcessor,
-//                         JdbcBatchItemWriter<MailLog> mailLogWriter) {
-//        return new StepBuilder("sendStep", jobRepository)
-//                .<Subscriber, MailLog>chunk(_____, transactionManager) // 몇 건씩 묶어 처리할지
-//                .reader(_____)
-//                .processor(_____)
-//                .writer(_____)
-//                .build();
-//    }
+
+    @Bean
+    public Job newsletterJob(JobRepository jobRepository, Step clearStep, Step sendStep) {
+        return new JobBuilder("newsletterJob", jobRepository)
+                .start(clearStep)   // 첫 번째 step
+                .next(sendStep)    // 두 번째 step
+                .build();
+    }
+
+    @Bean
+    public Step clearStep(JobRepository jobRepository,
+                          PlatformTransactionManager transactionManager,
+                          JdbcTemplate jdbcTemplate) {
+        return new StepBuilder("clearStep", jobRepository)
+                .tasklet((contribution, chunkContext) -> {
+                    jdbcTemplate.update("DELETE FROM mail_log"); // 이전 발송 기록 삭제
+                    return RepeatStatus.FINISHED;
+                }, transactionManager)
+                .build();
+    }
+
+    @Bean
+    public Step sendStep(JobRepository jobRepository,
+                         PlatformTransactionManager transactionManager,
+                         JdbcPagingItemReader<Subscriber> subscriberReader,
+                         ItemProcessor<Subscriber, MailLog> newsletterProcessor,
+                         JdbcBatchItemWriter<MailLog> mailLogWriter) {
+        return new StepBuilder("sendStep", jobRepository)
+                .<Subscriber, MailLog>chunk(100, transactionManager) // 몇 건씩 묶어 처리할지
+                .reader(subscriberReader)
+                .processor(newsletterProcessor)
+                .writer(mailLogWriter)
+                .build();
+    }
 
 
 //    [TODO 1] Reader (subscriberReader)
@@ -76,17 +76,16 @@ public class NewsletterBatchConfig {
 //   LIMIT 100
     @Bean
     public JdbcPagingItemReader<Subscriber> subscriberReader(DataSource dataSource) {
-//        return new JdbcPagingItemReaderBuilder<Subscriber>()
-//                .name("subscriberReader")
-//                .dataSource(dataSource)
-//                .selectClause("__________")
-//                .fromClause("__________")
-//                .whereClause("__________")
-//                .sortKeys(Map.of("__________", Order.ASCENDING))
-//                .pageSize(__________)
-//                .rowMapper(new DataClassRowMapper<>(Subscriber.class))
-//                .build();
-        return null; // 위 코드 작성 시 이 줄은 삭제
+        return new JdbcPagingItemReaderBuilder<Subscriber>()
+                .name("subscriberReader")
+                .dataSource(dataSource)
+                .selectClause("account_id, email, nickname")
+                .fromClause("accounts")
+                .whereClause("status = 'ACTIVE' AND email LIKE 'newsletter-user-%'")
+                .sortKeys(Map.of("account_id", Order.ASCENDING))
+                .pageSize(100)
+                .rowMapper(new DataClassRowMapper<>(Subscriber.class))
+                .build();
     }
 
 //    [TODO 2] Processor (newsletterProcessor)
@@ -95,28 +94,26 @@ public class NewsletterBatchConfig {
 
     @Bean
     public ItemProcessor<Subscriber, MailLog> newsletterProcessor() {
-//        return subscriber -> {
-//            // 💥 메일 서버 장애 시뮬레이션
-////             if (subscriber.nickname().equals("구독자557")) {
-////                 throw new IllegalStateException("💥 메일 서버 장애 발생");
-////             }
-//
-//            String subject = "[EFUB] " + subscriber.nickname() + "님, 이번 주 소식이 도착했어요!";
-//            return __________.of(subscriber, subject);
-//        };
-        return null; // 위 코드 작성 시 이 줄은 삭제
+        return subscriber -> {
+            // 💥 메일 서버 장애 시뮬레이션
+//             if (subscriber.nickname().equals("구독자557")) {
+//                 throw new IllegalStateException("💥 메일 서버 장애 발생");
+//             }
+
+            String subject = "[EFUB] " + subscriber.nickname() + "님, 이번 주 소식이 도착했어요!";
+            return MailLog.of(subscriber, subject);
+        };
     }
 
 //    [TODO 3] Writer (mailLogWriter)
 //      Processor가 만든 MailLog를 mail_log 테이블에 INSERT 합니다
     @Bean
     public JdbcBatchItemWriter<MailLog> mailLogWriter(DataSource dataSource) {
-//        return new JdbcBatchItemWriterBuilder<MailLog>()
-//                .dataSource(dataSource)
-//                .sql("INSERT INTO mail_log (account_id, email, subject, sent_at) "
-//                     + "VALUES (:accountId, :email, :subject, :sentAt)")
-//                .beanMapped()
-//                .build();
-        return null; // 위 코드 작성 시 이 줄은 삭제
+        return new JdbcBatchItemWriterBuilder<MailLog>()
+                .dataSource(dataSource)
+                .sql("INSERT INTO mail_log (account_id, email, subject, sent_at) "
+                     + "VALUES (:accountId, :email, :subject, :sentAt)")
+                .beanMapped()
+                .build();
     }
 }
